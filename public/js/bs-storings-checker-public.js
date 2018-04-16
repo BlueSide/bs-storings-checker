@@ -1,10 +1,26 @@
 (function( $ ) {
     'use strict';
     $( window ).load(function() {
+
         var regexpCheckPostcodeNL = /^[1-9][0-9]{3} ?(?!sa|sd|ss)[a-z]{2}$/i;
-
+        
+        $('#sc-postcode').keypress(function (e) {
+            if (e.which == 13)
+            {
+                checkPostcode();
+                return false;
+            }
+            return true;
+        });
+        
         $( document ).on( 'click', '.check-storing', function() {
+            checkPostcode();
+                        
+        });
 
+        function checkPostcode()
+        {
+            
             $("#sc-error").hide();
             $("#sc-not-found").hide();
             $("#sc-found").hide();
@@ -50,8 +66,8 @@
                     console.log(error);
                 }
             });
-            
-        });
+
+        }
 
         function renderItems(items)
         {

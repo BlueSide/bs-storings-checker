@@ -17,8 +17,8 @@
     <div id="sc-error" style="display:none">Geen geldige postcode!</div>
     <div id="sc-not-found" style="display:none">De postcode is niet gevonden!</div>
     <div id="sc-found" style="display:none">Er zijn geen storingen bekend in uw postcodegebied.</div>
-    <!-- <form> -->
-    <input type="text" id="sc-postcode" class="uk-input"/>
-    <button type="button" class="check-storing uk-button uk-button-primary">Check!</button>
-    <!-- </form> -->
+    <form>
+        <input type="text" id="sc-postcode" class="uk-input"/>
+        <button type="button" class="check-storing uk-button uk-button-primary">Check!</button>
+    </form>
 </div>

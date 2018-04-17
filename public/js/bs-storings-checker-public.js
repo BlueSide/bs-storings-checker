@@ -20,7 +20,7 @@
 
         function checkPostcode()
         {
-            
+            $("#sc-spinner").show();
             $("#sc-error").hide();
             $("#sc-not-found").hide();
             $("#sc-found").hide();
@@ -31,6 +31,7 @@
             if(!isValidPostcode(normalizedInput))
             {
                 $("#sc-error").show();
+                $("#sc-spinner").hide();
                 return;
             }
             
@@ -43,7 +44,7 @@
                 },
                 success : function( data )
                 {
-                    console.log(data);
+                    $("#sc-spinner").hide();
                     var response = JSON.parse(data);
 
                     if(response.status === 'not_found')
@@ -64,6 +65,7 @@
                 error: function (error)
                 {
                     console.log(error);
+                    $("#sc-spinner").hide();
                 }
             });
 

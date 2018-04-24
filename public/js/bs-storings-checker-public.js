@@ -47,20 +47,27 @@
                     $("#sc-spinner").hide();
                     var response = JSON.parse(data);
 
+                    //NOTE: Postcode niet gevonden in Warmtenet
                     if(response.status === 'not_found')
                     {
                         $("#sc-not-found").show();                        
                         return;
                     }
                     
+                    //NOTE: Postcode gevonden, geen storingen
                     if(response.items.length === 0)
                     {
                         $("#sc-found").show();
                         return;
                     }
 
-                    renderItems(response.items);
-                    
+                    //NOTE: Storingen gevonden                    
+                    $("#sc-storingen-intro").show();                        
+                    $("#sc-storingen").show();
+                    for(var i = 0; i < response.items.length; ++i)
+                    {
+                        $("#sc-storingen").append('<p><span class="uk-text-bold">' + response.items[i].title + '</span><br />' + response.items[i].description +'</p>');
+                    }
                 },
                 error: function (error)
                 {
@@ -69,14 +76,6 @@
                 }
             });
 
-        }
-
-        function renderItems(items)
-        {
-            for(var i = 0; i < items.length; ++i)
-            {
-                $("#storingen").append('<h3>' + items[i].title + '</h3>' + '<p>'+items[i].description+'</p>');
-            }
         }
 
         function isValidPostcode(input)

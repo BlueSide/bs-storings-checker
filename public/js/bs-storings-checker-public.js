@@ -26,7 +26,10 @@
             $("#sc-not-found").hide();
             $("#sc-found").hide();
             $("#sc-error").hide();
-
+            $("#sc-storingen-intro").hide();
+            $("#sc-storingen").hide();
+            $("#sc-storingen").empty();
+            
             // Normalize and validate
             var normalizedInput = $('#sc-postcode').val().replace(/ /g,'').toUpperCase();
 

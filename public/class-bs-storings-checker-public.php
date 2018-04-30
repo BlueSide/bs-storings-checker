@@ -30,7 +30,8 @@ class Bs_Storings_Checker_Public
      * @access   private
      * @var      string    rss_url    The URL to get the RSS feed from
      */
-    private $rss_url = 'https://ennatuurlijk.nl/storingen.rss';
+    private $rss_url_storingen = 'https://ennatuurlijk.nl/rss/storingen.rss';
+    private $rss_url_werkzaamheden = 'https://ennatuurlijk.nl/rss/werkzaamheden.rss';
 
     /**
      * The ID of this plugin.
@@ -87,101 +88,133 @@ class Bs_Storings_Checker_Public
         }
 
         // Check if the postcode is in our region, return 'not_found' if not
-        if(!$this->is_present($_POST['postcode'], $postcodes))
+        if(!in_array($_POST['postcode'], $postcodes))
         {
             $response->status = "not_found";
             echo json_encode($response);
             wp_die();
         }
 
+        $response->items_storingen = $this->load_RSS_items($this->rss_url_storingen);
+        $response->items_werkzaamheden = $this->load_RSS_items($this->rss_url_werkzaamheden);
+
+        echo json_encode($response);
+
+        wp_die();
+    }
+
+    /**
+     * Get all titles, descriptions and postcodes from provided RSS feed.
+     * 
+     * @param    string    $url       The URL of the RSS feed.
+     * @since    1.0.0
+     */
+    private function load_RSS_items($url)
+    {
         $xml = new DOMDocument();
-        $xml->load($this->rss_url);
+        $xml->load($url);
         $channel = $xml->getElementsByTagName('channel')->item(0);
         $items = $xml->getElementsByTagName('item');
+
         $entries = array();
+        
         foreach($items as $item)
         {
             $entry = null;
             $entry->title = $item->getElementsByTagName('title')->item(0)->childNodes->item(0)->nodeValue;
             $entry->description = $item->getElementsByTagName('description')->item(0)->childNodes->item(0)->nodeValue;
             $entry->postcodes = $this->parse_postcodes_from_rss($entry->description);
-
+            
             if($this->is_present($_POST['postcode'], $entry->postcodes))
             {
                 array_push($entries, $entry);
             }
         }
         
-        $response->items = $entries;
-        echo json_encode($response);
-
-        wp_die();
+        return $entries;
     }
 
-    public function is_present($postcode, $postcodes)
+    private function is_present($postcode, $postcodes)
     {
+        /* NOTE:
+         * Postcodes can be present as a single postcode (1234AA)
+         * or as postcode area (1234), so we check first which
+         * one is present in the $item.
+         */
         foreach($postcodes as $item)
         {
-            if($item === $postcode)
+            if(strlen((string)$item) === 6)
             {
-                return true;
+                if($item === $postcode)
+                {
+                    return true;
+                }
+
+            }
+
+            if(strlen((string)$item) === 4)
+            {
+                if($item === substr($postcode, 0, 4))
+                {
+                    return true;
+                }
             }
         }
 
         return false;
     }
 
-    private function parse_postcodes_from_rss($description)
-    {
-        $result = array();
-        $postcodes = 'Postcodes: ';
-        $start = strpos($description , 'Postcodes: ');
-        $end = strlen($description);
-        $postcodes_str = substr($description, $start + strlen($postcodes), $end);
-        $sanitized_postcodes = preg_replace('/[^A-Za-z0-9\-]/', ' ', $postcodes_str);
-        $candidates = explode(" ", $sanitized_postcodes);
+                private function parse_postcodes_from_rss($description)
+                {
+                    $result = array();
+                    $postcodes = 'Postcodes: ';
+                    $start = strpos($description , 'Postcodes: ');
+                    $end = strlen($description);
+                    $postcodes_str = substr($description, $start + strlen($postcodes), $end);
+                    $sanitized_postcodes = preg_replace('/[^A-Za-z0-9\-]/', ' ', $postcodes_str);
+                    $candidates = explode(" ", $sanitized_postcodes);
 
-        foreach ($candidates as $key => $element) {
-            if (strlen($element) < 6)
-            {
-                unset($candidates[$key]);
+                    foreach ($candidates as $key => $element)
+                    {
+                        if (strlen($element) < 4 || strlen($element) > 6)
+                        {
+                            unset($candidates[$key]);
+                        }
+                    }
+                    return $candidates;
+                }
+                
+                /**
+                 * 
+                 *
+                 * @since    1.0.0
+                 */
+                public function shortcode_callback()
+                {
+                    ob_start();
+                    include dirname( __FILE__ ) . '/partials/bs-storings-checker-public-display.php';
+                    return ob_get_clean();
+                }
+
+                /**
+                 * Register the stylesheets for the public-facing side of the site.
+                 *
+                 * @since    1.0.0
+                 */
+                public function enqueue_styles()
+                {
+	            wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/bs-storings-checker-public.css', array(), $this->version, 'all' );
+                }
+
+                /**
+                 * Register the JavaScript for the public-facing side of the site.
+                 *
+                 * @since    1.0.0
+                 */
+                public function enqueue_scripts()
+                {
+	            wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/bs-storings-checker-public.js', array( 'jquery' ), $this->version, false );
+                    wp_localize_script( $this->plugin_name, 'storings_checker', array('ajax_url' => admin_url( 'admin-ajax.php' )));
+                }
+
             }
-        }
-        return $candidates;
-        //return preg_match_all( "/^[1-9][0-9]{3} ?(?!sa|sd|ss)[a-z]{2}$/i" , $explosion, $result);
-    }
-    
-    /**
-     * 
-     *
-     * @since    1.0.0
-     */
-    public function shortcode_callback()
-    {
-        ob_start();
-        include dirname( __FILE__ ) . '/partials/bs-storings-checker-public-display.php';
-        return ob_get_clean();
-    }
-
-    /**
-     * Register the stylesheets for the public-facing side of the site.
-     *
-     * @since    1.0.0
-     */
-    public function enqueue_styles()
-    {
-	wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/bs-storings-checker-public.css', array(), $this->version, 'all' );
-    }
-
-    /**
-     * Register the JavaScript for the public-facing side of the site.
-     *
-     * @since    1.0.0
-     */
-    public function enqueue_scripts()
-    {
-	wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/bs-storings-checker-public.js', array( 'jquery' ), $this->version, false );
-        wp_localize_script( $this->plugin_name, 'storings_checker', array('ajax_url' => admin_url( 'admin-ajax.php' )));
-    }
-
-}

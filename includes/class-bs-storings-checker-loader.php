@@ -43,6 +43,15 @@ class Bs_Storings_Checker_Loader
     protected $filters;
 
     /**
+     * The array of shortcodes registered with WordPress.
+     *
+     * @since    1.0.0
+     * @access   protected
+     * @var      array    $shortcodes    The shortcodes registered with WordPress to fire when the plugin loads.
+     */
+    protected $shortcodes;
+
+    /**
      * Initialize the collections used to maintain the actions and filters.
      *
      * @since    1.0.0

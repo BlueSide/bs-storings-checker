@@ -1,6 +1,6 @@
 (function( $ ) {
     'use strict';
-    $( window ).load(function() {
+    $(window).load(function() {
 
         var regexpCheckPostcodeNL = /^[1-9][0-9]{3} ?(?!sa|sd|ss)[a-z]{2}$/i;
         
@@ -13,7 +13,7 @@
             return true;
         });
         
-        $( document ).on( 'click', '.check-storing', function() {
+        $(document).on( 'click', '.check-storing', function() {
             checkPostcode();
                         
         });
@@ -21,16 +21,19 @@
         function checkPostcode()
         {
             $("#sc-spinner").show();
-            $("#sc-error").hide();
+            $("#sc-not-valid").hide();
+            $("#sc-not-error").hide();
             $("#sc-not-found").hide();
             $("#sc-found").hide();
+            $("#sc-error").hide();
 
             // Normalize and validate
             var normalizedInput = $('#sc-postcode').val().replace(/ /g,'').toUpperCase();
-            
-            if(!isValidPostcode(normalizedInput))
+
+            // Validate postcode using Regular Expression
+            if(!regexpCheckPostcodeNL.test(normalizedInput))
             {
-                $("#sc-error").show();
+                $("#sc-not-valid").show();
                 $("#sc-spinner").hide();
                 return;
             }
@@ -55,32 +58,41 @@
                     }
                     
                     //NOTE: Postcode gevonden, geen storingen
-                    if(response.items.length === 0)
+                    if(response.items_werkzaamheden.length === 0 && response.items_storingen.length === 0)
                     {
                         $("#sc-found").show();
                         return;
                     }
 
                     //NOTE: Storingen gevonden                    
-                    $("#sc-storingen-intro").show();                        
-                    $("#sc-storingen").show();
-                    for(var i = 0; i < response.items.length; ++i)
+                    if(response.items_storingen.length > 0)
                     {
-                        $("#sc-storingen").append('<p><span class="uk-text-bold">' + response.items[i].title + '</span><br />' + response.items[i].description +'</p>');
+                        $("#sc-storingen-intro").show();                        
+                        $("#sc-storingen").show();
+                        for(var i = 0; i < response.items_storingen.length; ++i)
+                        {
+                            $("#sc-storingen").append('<p><span class="uk-text-bold">' + response.items_storingen[i].title + '</span><br />' + response.items_storingen[i].description +'</p>');
+                        }
+                    }
+
+                    //NOTE: Werkzaamheden gevonden
+                    if(response.items_werkzaamheden.length > 0)
+                    {
+                        $("#sc-storingen-intro").show();                        
+                        $("#sc-storingen").show();
+                        for(var i = 0; i < response.items_werkzaamheden.length; ++i)
+                        {
+                            $("#sc-storingen").append('<p><span class="uk-text-bold">' + response.items_werkzaamheden[i].title + '</span><br />' + response.items_werkzaamheden[i].description +'</p>');
+                        }
                     }
                 },
                 error: function (error)
                 {
-                    console.log(error);
                     $("#sc-spinner").hide();
+                    $("#sc-error").show();
                 }
             });
 
-        }
-
-        function isValidPostcode(input)
-        {
-            return regexpCheckPostcodeNL.test(input);
         }
         
     });

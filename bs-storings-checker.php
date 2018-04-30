@@ -27,7 +27,7 @@
 
 // If this file is called directly, abort.
 if ( ! defined( 'WPINC' ) ) {
-	die;
+    die;
 }
 
 /**
@@ -35,15 +35,17 @@ if ( ! defined( 'WPINC' ) ) {
  * Start at version 1.0.0 and use SemVer - https://semver.org
  * Rename this for your plugin and update it as you release new versions.
  */
-define( 'PLUGIN_NAME_VERSION', '1.0.0' );
+if(!defined('PLUGIN_NAME_VERSION')) {
+    define( 'PLUGIN_NAME_VERSION', '1.0.0' );
+}
 
 /**
  * The code that runs during plugin activation.
  * This action is documented in includes/class-bs-storings-checker-activator.php
  */
 function activate_bs_storings_checker() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bs-storings-checker-activator.php';
-	Bs_Storings_Checker_Activator::activate();
+    require_once plugin_dir_path( __FILE__ ) . 'includes/class-bs-storings-checker-activator.php';
+    Bs_Storings_Checker_Activator::activate();
 }
 
 /**
@@ -51,8 +53,8 @@ function activate_bs_storings_checker() {
  * This action is documented in includes/class-bs-storings-checker-deactivator.php
  */
 function deactivate_bs_storings_checker() {
-	require_once plugin_dir_path( __FILE__ ) . 'includes/class-bs-storings-checker-deactivator.php';
-	Bs_Storings_Checker_Deactivator::deactivate();
+    require_once plugin_dir_path( __FILE__ ) . 'includes/class-bs-storings-checker-deactivator.php';
+    Bs_Storings_Checker_Deactivator::deactivate();
 }
 
 register_activation_hook( __FILE__, 'activate_bs_storings_checker' );
@@ -75,8 +77,8 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-bs-storings-checker.php';
  */
 function run_bs_storings_checker() {
 
-	$plugin = new Bs_Storings_Checker();
-	$plugin->run();
+    $plugin = new Bs_Storings_Checker();
+    $plugin->run();
 
 }
 run_bs_storings_checker();
